@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import RestaurantMenu from "@/components/RestaurantMenu";
 import Cart from "@/components/Cart";
 import AdminDashboard from "@/components/AdminDashboard";
-import { ShoppingCart, Users, Utensils } from "lucide-react";
+import OrderHistory from "@/components/OrderHistory";
+import { ShoppingCart, Users, Utensils, History } from "lucide-react";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState('home');
@@ -60,6 +61,16 @@ const Index = () => {
     ));
   };
 
+  const requestDelivery = (orderId, deliveryLocation) => {
+    setOrders(prev => prev.map(order => 
+      order.id === orderId ? { 
+        ...order, 
+        status: 'livraison', 
+        deliveryLocation: deliveryLocation 
+      } : order
+    ));
+  };
+
   if (currentView === 'admin') {
     return (
       <AdminDashboard 
@@ -92,6 +103,16 @@ const Index = () => {
     );
   }
 
+  if (currentView === 'orders') {
+    return (
+      <OrderHistory 
+        orders={orders}
+        onBack={() => setCurrentView('home')}
+        onRequestDelivery={requestDelivery}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 p-6">
       <div className="max-w-4xl mx-auto">
@@ -106,39 +127,57 @@ const Index = () => {
         </div>
 
         {/* Main Actions */}
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
           <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-orange-500 to-red-500 text-white border-0">
-            <CardContent className="p-8 text-center">
-              <Utensils className="mx-auto mb-4 h-16 w-16 group-hover:scale-110 transition-transform" />
-              <h2 className="text-2xl font-bold mb-4">Interface Client</h2>
-              <p className="mb-6 opacity-90">
-                Découvrez notre menu et passez votre commande
+            <CardContent className="p-6 text-center">
+              <Utensils className="mx-auto mb-4 h-12 w-12 group-hover:scale-110 transition-transform" />
+              <h2 className="text-xl font-bold mb-3">Menu</h2>
+              <p className="mb-4 opacity-90 text-sm">
+                Découvrez notre menu
               </p>
               <Button 
                 onClick={() => setCurrentView('menu')}
-                size="lg"
+                size="sm"
                 variant="secondary"
-                className="w-full text-lg py-6 bg-white text-orange-600 hover:bg-gray-100"
+                className="w-full text-orange-600 hover:bg-gray-100"
               >
                 Voir le Menu
               </Button>
             </CardContent>
           </Card>
 
+          <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-green-500 to-teal-500 text-white border-0">
+            <CardContent className="p-6 text-center">
+              <History className="mx-auto mb-4 h-12 w-12 group-hover:scale-110 transition-transform" />
+              <h2 className="text-xl font-bold mb-3">Mes Commandes</h2>
+              <p className="mb-4 opacity-90 text-sm">
+                Voir vos commandes
+              </p>
+              <Button 
+                onClick={() => setCurrentView('orders')}
+                size="sm"
+                variant="secondary"
+                className="w-full text-green-600 hover:bg-gray-100"
+              >
+                Voir Commandes
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-blue-500 to-purple-500 text-white border-0">
-            <CardContent className="p-8 text-center">
-              <Users className="mx-auto mb-4 h-16 w-16 group-hover:scale-110 transition-transform" />
-              <h2 className="text-2xl font-bold mb-4">Interface Responsable</h2>
-              <p className="mb-6 opacity-90">
-                Gérez les commandes et validez les préparations
+            <CardContent className="p-6 text-center">
+              <Users className="mx-auto mb-4 h-12 w-12 group-hover:scale-110 transition-transform" />
+              <h2 className="text-xl font-bold mb-3">Admin</h2>
+              <p className="mb-4 opacity-90 text-sm">
+                Gérer les commandes
               </p>
               <Button 
                 onClick={() => setCurrentView('admin')}
-                size="lg"
+                size="sm"
                 variant="secondary"
-                className="w-full text-lg py-6 bg-white text-blue-600 hover:bg-gray-100"
+                className="w-full text-blue-600 hover:bg-gray-100"
               >
-                Dashboard Admin
+                Dashboard
               </Button>
             </CardContent>
           </Card>

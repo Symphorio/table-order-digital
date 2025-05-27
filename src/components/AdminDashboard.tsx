@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, CheckCircle, Clock, Truck, MapPin, Phone } from "lucide-react";
+import { ArrowLeft, CheckCircle, Clock, Truck, MapPin, Phone, Printer } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const AdminDashboard = ({ orders, updateOrderStatus, onBack }) => {
@@ -44,6 +44,93 @@ const AdminDashboard = ({ orders, updateOrderStatus, onBack }) => {
     });
   };
 
+  const handleValidateDelivery = (orderId) => {
+    updateOrderStatus(orderId, 'passé');
+    setSelectedOrder(null);
+    toast({
+      title: "Livraison validée",
+      description: "La livraison est maintenant marquée comme terminée",
+    });
+  };
+
+  const handlePrintReceipt = (order) => {
+    // Créer le contenu du reçu
+    const receiptContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Reçu - Commande #${order.id}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+          .order-info { margin-bottom: 20px; }
+          .items { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          .items th, .items td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          .items th { background-color: #f2f2f2; }
+          .total { font-weight: bold; font-size: 1.2em; text-align: right; }
+          .footer { text-align: center; margin-top: 30px; padding-top: 10px; border-top: 1px solid #ddd; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>🍽️ Restaurant Digital</h1>
+          <h2>REÇU DE COMMANDE</h2>
+        </div>
+        
+        <div class="order-info">
+          <p><strong>Numéro de commande:</strong> #${order.id}</p>
+          <p><strong>Date et heure:</strong> ${order.timestamp}</p>
+          <p><strong>Table:</strong> ${order.tableNumber}</p>
+          <p><strong>Contact:</strong> ${order.paymentPhone}</p>
+          ${order.deliveryLocation ? `<p><strong>Livraison:</strong> ${order.deliveryLocation.address}</p>` : ''}
+        </div>
+        
+        <table class="items">
+          <thead>
+            <tr>
+              <th>Article</th>
+              <th>Quantité</th>
+              <th>Prix unitaire</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${order.items.map(item => `
+              <tr>
+                <td>${item.name}</td>
+                <td>${item.quantity}</td>
+                <td>${item.price.toLocaleString()} FCFA</td>
+                <td>${(item.price * item.quantity).toLocaleString()} FCFA</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        <div class="total">
+          TOTAL: ${order.total.toLocaleString()} FCFA
+        </div>
+        
+        <div class="footer">
+          <p>Merci pour votre visite !</p>
+          <p>Restaurant Digital - Service de qualité</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Ouvrir une nouvelle fenêtre et imprimer
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(receiptContent);
+    printWindow.document.close();
+    printWindow.print();
+    printWindow.close();
+
+    toast({
+      title: "Reçu imprimé",
+      description: "Le reçu a été envoyé à l'imprimante",
+    });
+  };
+
   const handleViewDelivery = (order) => {
     setSelectedOrder(order);
   };
@@ -74,9 +161,20 @@ const AdminDashboard = ({ orders, updateOrderStatus, onBack }) => {
       );
     } else {
       return (
-        <Badge className="bg-green-100 text-green-800">
-          Terminé
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge className="bg-green-100 text-green-800">
+            Terminé
+          </Badge>
+          <Button
+            onClick={() => handlePrintReceipt(order)}
+            size="sm"
+            variant="outline"
+            className="border-gray-500 text-gray-600"
+          >
+            <Printer className="h-4 w-4 mr-1" />
+            Imprimer
+          </Button>
+        </div>
       );
     }
   };
@@ -227,10 +325,20 @@ const AdminDashboard = ({ orders, updateOrderStatus, onBack }) => {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-semibold">{order.tableNumber} - #{order.id}</span>
-                        <Badge className="bg-green-500 text-white">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Terminé
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-green-500 text-white">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Terminé
+                          </Badge>
+                          <Button
+                            onClick={() => handlePrintReceipt(order)}
+                            size="sm"
+                            variant="outline"
+                            className="border-gray-500 text-gray-600 h-6 px-2"
+                          >
+                            <Printer className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                       <div className="text-sm text-gray-600 mb-2">
                         ⏰ {order.timestamp} | Total: {order.total.toLocaleString()} FCFA
@@ -276,6 +384,16 @@ const AdminDashboard = ({ orders, updateOrderStatus, onBack }) => {
                     <span className="font-semibold">Contact client</span>
                   </div>
                   <p className="text-sm">{selectedOrder.paymentPhone}</p>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => handleValidateDelivery(selectedOrder.id)}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Valider la livraison
+                  </Button>
                 </div>
               </div>
             )}
