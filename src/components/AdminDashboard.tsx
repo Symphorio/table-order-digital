@@ -1,14 +1,15 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, CheckCircle, Clock, Truck, MapPin, Phone, Printer } from "lucide-react";
+import { ArrowLeft, CheckCircle, Clock, Truck, MapPin, Phone, Printer, Menu } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import MenuManagement from "./MenuManagement";
 
 const AdminDashboard = ({ orders, updateOrderStatus, onBack }) => {
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showMenuManagement, setShowMenuManagement] = useState(false);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -179,6 +180,12 @@ const AdminDashboard = ({ orders, updateOrderStatus, onBack }) => {
     }
   };
 
+  if (showMenuManagement) {
+    return (
+      <MenuManagement onBack={() => setShowMenuManagement(false)} />
+    );
+  }
+
   const pendingOrders = orders.filter(order => order.status !== 'passé');
   const completedOrders = orders.filter(order => order.status === 'passé');
 
@@ -198,7 +205,13 @@ const AdminDashboard = ({ orders, updateOrderStatus, onBack }) => {
           
           <h1 className="text-3xl font-bold text-gray-800">Dashboard Responsable</h1>
           
-          <div className="w-20"></div>
+          <Button
+            onClick={() => setShowMenuManagement(true)}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            <Menu className="h-4 w-4 mr-2" />
+            Gérer Menu
+          </Button>
         </div>
 
         {/* Stats */}
